@@ -12,6 +12,22 @@
 
 UI: Tailwind 4 + shadcn/ui + lucide + `motion` (for micro-interactions) + `cmdk` (command palette) + sonner.
 
+### LLM provider decision (2026-10-04)
+
+**Default: Google Gemini API free tier** for both generation and embeddings (one key, no card). Claude stays available behind `LLM_PROVIDER=anthropic` for paid client builds.
+
+| Spec assumption | Gemini build |
+|---|---|
+| `claude-opus-5-5` for extract / score / redline / Q&A | `gemini-2.5-flash` (env `LLM_MODEL`; verify the IDs your key lists) |
+| Claude structured outputs | Gemini `responseMimeType: application/json` + `responseJsonSchema`, then zod |
+| Claude native citations on document blocks | Provider-neutral citations: the model returns `segments[{text, citations[{chunk_id, quote}]}]` as JSON; code verifies each quote is a substring of its chunk and drops anything unverified. Streaming becomes "stream segments as they complete" |
+| Voyage `voyage-law-2`, `vector(1024)` | `gemini-embedding-001` with `outputDimensionality: 768`, so the migration uses `vector(768)` |
+| Prompt caching extract → score | Not relied on. Free-tier cost is $0 |
+| `server-side-fallback` beta, refusal stop reason | Map Gemini `finishReason` (SAFETY, RECITATION, MAX_TOKENS) to the same handling: retry, split, or review task |
+| Cost log in USD | Logged at $0 on the free tier, with token counts kept, so paid-tier cost can be computed |
+
+Constraints: free tier is roughly 5-15 requests/min and 100-1,000/day per model (cut in April 2026), so the client retries 429s with backoff, the eval runner defaults to concurrency 1, and replay mode keeps live demos independent of quota. Free-tier prompts may be used by Google, which is acceptable only because all data is synthetic; the README says so.
+
 ## 2. Build order (vertical slice first)
 
 The spec's phase order builds the pipeline before the UI. To get a demo-able, polished product as early as possible, this plan builds the **demo path end to end against seeded data first**, then makes it live.
