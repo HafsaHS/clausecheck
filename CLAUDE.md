@@ -21,3 +21,5 @@ Next.js 16 App Router (TypeScript, Node runtime for API routes), Supabase (Postg
 
 ## Docs
 - Spec: docs/spec.md · Execution plan + polish list: docs/PLAN.md
+
+@AGENTS.md
