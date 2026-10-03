@@ -1,0 +1,13 @@
+node_modules/
+.next/
+out/
+.env
+.env*.local
+.vercel
+supabase/.temp/
+eval/results/
+*.log
+.DS_Store
+coverage/
+playwright-report/
+test-results/
