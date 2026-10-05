@@ -32,22 +32,17 @@ Constraints: free tier is roughly 5-15 requests/min and 100-1,000/day per model 
 
 The spec's phase order builds the pipeline before the UI. To get a demo-able, polished product as early as possible, this plan builds the **demo path end to end against seeded data first**, then makes it live.
 
-| # | Milestone | Outcome | Spec refs |
-|---|---|---|---|
-| M0 | Repo + tooling | Next.js scaffold, lint/format/typecheck, CI, design tokens, fonts, shadcn, CLAUDE.md, Supabase linked, migration applied | §7, §8, §15 |
-| M1 | Auth, tenancy, shell | Magic link, "Try the demo" anon sandbox, org switcher, sidebar shell, landing page v1 | Phase 1 |
-| M2 | **Seeded demo data** | Hand-authored fixtures for the 3 demo contracts (pages, clauses, assessments, missing, chunks) + the 3 playbooks. The review UI can now be built with no LLM calls | §12 |
-| M3 | **Review screen (polish focus)** | 3-pane review, PDF viewer + highlight, clause drawer, risk summary, missing card, injection banner, keyboard nav | Phase 5 (UI part) |
-| M4 | Live pipeline | Upload → parse → segment → extract → embed → score, Realtime step tracker, central Claude client + cost log | Phases 2-4 |
-| M5 | Redlines + escalation + sign-off | Diff UI, attorney-only accept (UI + trigger), tasks page, sign-off gate | Phase 5 (logic part) |
-| M6 | Cited Q&A | Hybrid retrieval, streaming SSE, citation chips → PDF jump, abstention card | Phase 6 |
-| M7 | Playbook editor + re-score | Rule editor, versioning, re-score with rationale diff | Phase 4 (UI part) |
-| M8 | Memo export | DOCX + PDF from a single MemoModel, preview page | Phase 7 |
-| M9 | Eval harness + `/evals` | Generator, runner, metrics, public page | Phase 8 |
-| M10 | Hardening + deploy | Rate limits, spend guard, cron reset, admin page, tests, Vercel deploy, seed real pipeline output | Phase 9 |
-| M11 | Portfolio assets | Screenshots, thumbnail, GIF, README, Upwork copy with real eval numbers | §18-19 |
+Five milestones, each with its own file in [`milestones/`](./milestones/) (scope, acceptance checks, what's needed from Hafsa, status).
 
-M2 and M3 mean we have a clickable, good-looking product within the first few sessions, even before any API key is in place.
+| # | Milestone | Outcome | Status |
+|---|---|---|---|
+| 1 | [Foundation and app shell](./milestones/01-foundation-and-shell.md) | Repo, DB, auth (magic link + "Try the demo" sandbox), org switcher, sidebar shell, landing v1 | In progress |
+| 2 | [Review experience on seeded data](./milestones/02-review-experience.md) | Seeded playbooks and demo contracts, 3-pane review screen, PDF highlight, keyboard nav: clickable with no LLM calls | Not started |
+| 3 | [Live AI review pipeline](./milestones/03-live-ai-pipeline.md) | Upload → parse → extract → embed → score, step tracker, redlines, escalation, sign-off, playbook editor + re-score | Not started |
+| 4 | [Cited Q&A and memo export](./milestones/04-cited-qa-and-export.md) | Hybrid retrieval, streaming cited answers, abstention, DOCX/PDF memo | Not started |
+| 5 | [Evals, launch and portfolio](./milestones/05-evals-launch-portfolio.md) | Eval harness + `/evals`, hardening, Vercel deploy, README and Upwork assets | Not started |
+
+Milestone 2 means we have a clickable, good-looking product early, before the live pipeline is tuned.
 
 ## 3. "Never feels like an MVP" polish list
 
@@ -85,12 +80,14 @@ These items go beyond the spec. Each one is small, but together they decide whet
 
 | Spec item | Change | Why |
 |---|---|---|
-| Phase order | Vertical slice (M2/M3 before the pipeline) | Demo-able early; UI isn't blocked on prompt tuning |
+| Phase order | Vertical slice (Milestone 2 review UI before the Milestone 3 pipeline) | Demo-able early; UI isn't blocked on prompt tuning |
 | PDF highlight "by char offsets" | Highlight by locating the clause's verbatim text in the pdf.js text layer of its page (normalised fuzzy match), with char offsets as a fallback | pdf.js text-layer spans don't map 1:1 to our normalised offsets |
 | Local dev on `supabase start` | Use a hosted Supabase dev project (Docker isn't installed on this machine). Integration tests run against a separate Supabase "test" project or a branch | No Docker locally |
 | Anthropic API specifics (`server-side-fallback-2026-07-01` beta, `output_config.effort`, citations + structured outputs) | Verify every param against the installed `@anthropic-ai/sdk` types and current docs before coding the client | Beta names and shapes change; the spec flags this too |
 | Eval set size (30 contracts, ~150 hand-checked clause variants) | Keep the size, but generate the variants with Claude and give you a review UI/checklist to approve them in batches | The hand-check is the biggest human time cost in the project |
 | Vercel Hobby `maxDuration 300` | OK with Fluid Compute. If processing times out, split into step-per-request driven by status | Hobby limits |
+| `POST /api/orgs`, `POST /api/demo/start` | Server actions (`app/actions/orgs.ts`, `app/actions/auth.ts`) | Same behaviour with less client code; a Turnstile token can still be passed in |
+
 
 ## 5. Risks
 
@@ -101,4 +98,4 @@ These items go beyond the spec. Each one is small, but together they decide whet
 
 ## 6. What I need from you
 
-See the questions in the conversation. Once they're answered I start M0.
+Each milestone file lists what is needed from Hafsa. In short: approve DB/config changes now; review generated eval clauses, create a Vercel account and record the video in Milestone 5.
